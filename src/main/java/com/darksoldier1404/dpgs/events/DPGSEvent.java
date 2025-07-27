@@ -109,13 +109,13 @@ public class DPGSEvent implements Listener {
                     int buyPrice = Integer.parseInt(message.split(":")[0]);
                     int sellPrice = Integer.parseInt(message.split(":")[1]);
                     ShopFunction.setShopPrice(inv.getCurrentPage(), shopName, buyPrice, sellPrice, inv.getCurrentPage(), slot);
-                    p.sendMessage(prefix + lang.getWithArgs("shop_price_set", shopName, String.valueOf(buyPrice), String.valueOf(sellPrice)));
+                    p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_set", shopName, String.valueOf(buyPrice), String.valueOf(sellPrice)));
                 } else if (message.matches("\\d+")) {
                     int price = Integer.parseInt(message);
                     ShopFunction.setShopPrice(inv.getCurrentPage(), shopName, price, 0, inv.getCurrentPage(), slot);
-                    p.sendMessage(prefix + lang.getWithArgs("shop_price_set", shopName, String.valueOf(price), "0"));
+                    p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_set", shopName, String.valueOf(price), "0"));
                 } else {
-                    p.sendMessage(prefix + lang.getWithArgs("shop_price_setting_number_guide"));
+                    p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_setting_number_guide"));
                 }
                 currentEdit.remove(p.getUniqueId());
                 Bukkit.getScheduler().runTask(plugin, () -> ShopFunction.openShopPriceSetting(p, shopName));

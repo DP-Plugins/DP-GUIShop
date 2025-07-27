@@ -1,7 +1,7 @@
 package com.darksoldier1404.dpgs.obj;
 
 import com.darksoldier1404.dppc.api.inventory.DInventory;
-import com.darksoldier1404.dppc.utils.ConfigUtils;
+import com.darksoldier1404.dppc.data.DataCargo;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +11,7 @@ import java.util.Set;
 
 import static com.darksoldier1404.dpgs.GUIShop.plugin;
 
-public class Shop {
+public class Shop implements DataCargo {
     private String name;
     private String title;
     private int size;
@@ -19,6 +19,9 @@ public class Shop {
     private Set<ShopPrices> prices = new HashSet<>();
     private boolean isEnabled = true;
     private String premission = null;
+
+    public Shop() {
+    }
 
     public Shop(String name, String title, int size) {
         this.name = name;
@@ -120,7 +123,8 @@ public class Shop {
         return null;
     }
 
-    public void save() {
+    @Override
+    public YamlConfiguration serialize() {
         YamlConfiguration data = new YamlConfiguration();
         data.set("name", name);
         data.set("title", title);
@@ -133,10 +137,11 @@ public class Shop {
             }
         }
         data = inventory.serialize(data);
-        ConfigUtils.saveCustomData(plugin, data, name, "shops");
+        return data;
     }
 
-    public static Shop load(YamlConfiguration data) {
+    @Override
+    public Shop deserialize(YamlConfiguration data) {
         String name = data.getString("name");
         String title = data.getString("title");
         int size = data.getInt("size");
@@ -159,6 +164,8 @@ public class Shop {
         }
         DInventory inventory = new DInventory(title, size * 9, true, plugin);
         inventory = inventory.deserialize(data);
+        System.out.println(data.saveToString());
+        System.out.println(plugin.getPrefix() + "Shop " + name + " loaded with title: " + title + ", size: " + size + ", enabled: " + isEnabled);
         return new Shop(name, title, size, inventory, prices, isEnabled, permission);
     }
 }

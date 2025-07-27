@@ -3,8 +3,6 @@ package com.darksoldier1404.dpgs.functions;
 import com.darksoldier1404.dpgs.obj.Shop;
 import com.darksoldier1404.dpgs.obj.ShopPrices;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
-import com.darksoldier1404.dppc.lang.DLang;
-import com.darksoldier1404.dppc.utils.ColorUtils;
 import com.darksoldier1404.dppc.utils.ConfigUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -16,9 +14,6 @@ import static com.darksoldier1404.dpgs.GUIShop.*;
 
 public class CommonFunction {
     public static void init() {
-        config = ConfigUtils.loadDefaultPluginConfig(plugin);
-        lang = new DLang(config.getString("Settings.Lang") == null ? "English" : config.getString("Settings.Lang"), plugin);
-        prefix = ColorUtils.applyColor(config.getString("Settings.prefix"));
         loadShops();
     }
 
@@ -26,15 +21,14 @@ public class CommonFunction {
         ConfigUtils.loadCustomDataList(plugin, "shops").forEach(data -> {
             String shopName = data.getString("name");
             if (shopName != null) {
-                Shop shop = Shop.load(data);
+                Shop shop = new Shop().deserialize(data);
                 shops.put(shopName, shop);
             }
         });
     }
 
     public static void saveConfig() {
-        ConfigUtils.savePluginConfig(plugin, config);
-        shops.values().forEach(Shop::save);
+        plugin.save();
     }
 
     public static void migration() {
