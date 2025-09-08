@@ -21,10 +21,10 @@ import static com.darksoldier1404.dpgs.GUIShop.*;
 public class DPGSEvent implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null) return;
-        if (e.getClickedInventory().getHolder() == null) return;
-        if (e.getClickedInventory().getHolder() instanceof DInventory) {
-            DInventory inv = (DInventory) e.getClickedInventory().getHolder();
+        if (e.getInventory() == null) return;
+        if (e.getInventory().getHolder() == null) return;
+        if (e.getInventory().getHolder() instanceof DInventory) {
+            DInventory inv = (DInventory) e.getInventory().getHolder();
             Player p = (Player) e.getWhoClicked();
             if (inv.isValidHandler(plugin)) {
                 Shop shop = ShopFunction.getShop(inv.getObj().toString());
