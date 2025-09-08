@@ -1,3 +1,5 @@
 Settings:
   prefix: "&f[ &eDP-GUIShop &f] "
   Lang: English
+
+  use_gui_amount_selector: false # New
