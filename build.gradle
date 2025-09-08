@@ -7,7 +7,7 @@ group 'com.darksoldier1404'
 
 // ##################################################
 
-version = '1.0.0.5'
+version = '1.0.0.6'
 var pluginName = 'DP-GUIShop'
 var packageName = 'com.darksoldier1404.dpgs'
 var apiVersion = '1.14.4'
