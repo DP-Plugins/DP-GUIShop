@@ -72,6 +72,10 @@ public class ShopFunction {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_permission", shop.getPremission()));
             return;
         }
+        if (!shop.isEnabled()) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_disabled", name));
+            return;
+        }
         DInventory inv = shop.getInventory().clone();
         inv.updateTitle(ColorUtils.applyColor(shop.getTitle()));
         inv.setObj(name);
