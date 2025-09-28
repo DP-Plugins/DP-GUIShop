@@ -31,6 +31,7 @@ public class CommonFunction {
         plugin.saveDataContainer();
     }
 
+    @Deprecated
     public static void migration() {
         for (YamlConfiguration data : ConfigUtils.loadCustomDataList(plugin, "migration")) {
             String shopName = data.getString("Shop.NAME");

@@ -48,6 +48,9 @@ public class DPGSEvent implements Listener {
                 }
                 if (inv.isValidChannel(0)) { // Main shop channel
                     e.setCancelled(true);
+                    if (e.getClickedInventory() != null && e.getClickedInventory().getType() == InventoryType.PLAYER) {
+                        return;
+                    }
                     if (clickType == ClickType.LEFT) {
                         ShopFunction.buyItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), false);
                         return;
@@ -70,7 +73,6 @@ public class DPGSEvent implements Listener {
                         e.setCancelled(true);
                         currentEdit.put(p.getUniqueId(), Tuple.of(e.getSlot(), inv));
                         p.closeInventory();
-                        return;
                     } else {
                         e.setCancelled(true);
                     }

@@ -2,4 +2,4 @@ Settings:
   prefix: "&f[ &eDP-GUIShop &f] "
   Lang: en_US
 
-  use_gui_amount_selector: false
+  use_gui_amount_selector: false # Not implemented yet

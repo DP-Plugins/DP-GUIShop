@@ -30,8 +30,8 @@ public class GUIShop extends DPlugin {
     public void onLoad() {
         PluginUtil.addPlugin(this, 26579);
         init();
-        shops = loadDataContainer(new DataContainer<String, Shop>(this, DataType.CUSTOM, "shops"), Shop.class);
-        udata = loadDataContainer(new DataContainer<String, YamlConfiguration>(this, DataType.USER), null);
+        shops = loadDataContainer(new DataContainer<>(this, DataType.CUSTOM, "shops"), Shop.class);
+        udata = loadDataContainer(new DataContainer<>(this, DataType.USER));
     }
 
     @Override
