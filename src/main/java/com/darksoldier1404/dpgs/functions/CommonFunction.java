@@ -14,6 +14,7 @@ import static com.darksoldier1404.dpgs.GUIShop.*;
 
 public class CommonFunction {
     public static void init() {
+        plugin.init();
         loadShops();
     }
 
