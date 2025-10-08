@@ -19,6 +19,7 @@ public class DPGSEvent implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
         if (e.getInventory() == null) return;
+        if (e.getClickedInventory() == null) return;
         if (e.getInventory().getHolder() == null) return;
         if (e.getInventory().getHolder() instanceof DInventory) {
             DInventory inv = (DInventory) e.getInventory().getHolder();
