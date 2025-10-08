@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.darksoldier1404.dpgs.GUIShop.*;
 
@@ -82,7 +83,7 @@ public class ShopFunction {
         inv.setChannel(0);
         inv.setCurrentPage(0);
         inv.applyAllItemChanges(
-                item -> applyPlaceholderForPriceSetting(shop, item)
+                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(shop, item)
         );
         inv.setPageTools(getPageTools());
         inv.update();
@@ -151,7 +152,7 @@ public class ShopFunction {
         inv.setObj(name);
         inv.setChannel(2);
         inv.applyAllItemChanges(
-                item -> applyPlaceholderForPriceSetting(shop, item)
+                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(shop, item)
         );
         inv.setPageTools(getPageTools());
         inv.update();
