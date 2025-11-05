@@ -3,7 +3,8 @@ package com.darksoldier1404.dpgs.events;
 import com.darksoldier1404.dpgs.functions.ShopFunction;
 import com.darksoldier1404.dpgs.obj.Shop;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
-import com.darksoldier1404.dppc.utils.NBT;
+import com.darksoldier1404.dppc.events.dinventory.DInventoryClickEvent;
+import com.darksoldier1404.dppc.events.dinventory.DInventoryCloseEvent;
 import com.darksoldier1404.dppc.utils.Tuple;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,81 +18,54 @@ import static com.darksoldier1404.dpgs.GUIShop.*;
 
 public class DPGSEvent implements Listener {
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getInventory() == null) return;
-        if (e.getClickedInventory() == null) return;
-        if (e.getInventory().getHolder() == null) return;
-        if (e.getInventory().getHolder() instanceof DInventory) {
-            DInventory inv = (DInventory) e.getInventory().getHolder();
-            Player p = (Player) e.getWhoClicked();
-            if (inv.isValidHandler(plugin)) {
-                Shop shop = ShopFunction.getShop(inv.getObj().toString());
-                ItemStack item = e.getCurrentItem();
-                if (item != null && item.getType().isAir()) {
+    public void onInventoryClick(DInventoryClickEvent e) {
+        DInventory inv = e.getDInventory();
+        Player p = (Player) e.getWhoClicked();
+        if (inv.isValidHandler(plugin)) {
+            Shop shop = ShopFunction.getShop(inv.getObj().toString());
+            ItemStack item = e.getCurrentItem();
+            if (item != null && item.getType().isAir()) {
+                return;
+            }
+            ClickType clickType = e.getClick();
+            if (inv.isValidChannel(0)) { // Main shop channel
+                e.setCancelled(true);
+                if (e.getClickedInventory() != null && e.getClickedInventory().getType() == InventoryType.PLAYER) {
                     return;
                 }
-                ClickType clickType = e.getClick();
-                if (NBT.hasTagKey(item, "dpgs.prevpage")) {
-                    inv.applyChanges();
-                    inv.prevPage();
+                if (clickType == ClickType.LEFT) {
+                    ShopFunction.buyItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), false);
+                    return;
+                } else if (clickType == ClickType.RIGHT) {
+                    ShopFunction.sellItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), false);
+                    return;
+                } else if (clickType == ClickType.SHIFT_LEFT) {
+                    ShopFunction.buyItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), true);
+                    return;
+                } else if (clickType == ClickType.SHIFT_RIGHT) {
+                    ShopFunction.sellItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), true);
+                    return;
+                }
+            }
+            if (inv.isValidChannel(2)) { // Price setting channel
+                if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
                     e.setCancelled(true);
-                    return;
-                }
-                if (NBT.hasTagKey(item, "dpgs.nextpage")) {
-                    inv.applyChanges();
-                    inv.nextPage();
+                    currentEdit.put(p.getUniqueId(), Tuple.of(e.getSlot(), inv));
+                    p.closeInventory();
+                } else {
                     e.setCancelled(true);
-                    return;
-                }
-                if (NBT.hasTagKey(item, "dpgs.clickcancel")) {
-                    e.setCancelled(true);
-                    return;
-                }
-                if (inv.isValidChannel(0)) { // Main shop channel
-                    e.setCancelled(true);
-                    if (e.getClickedInventory() != null && e.getClickedInventory().getType() == InventoryType.PLAYER) {
-                        return;
-                    }
-                    if (clickType == ClickType.LEFT) {
-                        ShopFunction.buyItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), false);
-                        return;
-                    } else if (clickType == ClickType.RIGHT) {
-                        ShopFunction.sellItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), false);
-                        return;
-                    } else if (clickType == ClickType.SHIFT_LEFT) {
-                        ShopFunction.buyItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), true);
-                        return;
-                    } else if (clickType == ClickType.SHIFT_RIGHT) {
-                        ShopFunction.sellItem(p, shop.getName(), inv.getCurrentPage(), e.getSlot(), true);
-                        return;
-                    }
-                }
-                if (inv.isValidChannel(1)) { // Item setting channel
-                    return;
-                }
-                if (inv.isValidChannel(2)) { // Price setting channel
-                    if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
-                        e.setCancelled(true);
-                        currentEdit.put(p.getUniqueId(), Tuple.of(e.getSlot(), inv));
-                        p.closeInventory();
-                    } else {
-                        e.setCancelled(true);
-                    }
                 }
             }
         }
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        if (e.getInventory().getHolder() instanceof DInventory) {
-            Player p = (Player) e.getPlayer();
-            DInventory inv = (DInventory) e.getInventory().getHolder();
-            if (inv.isValidHandler(plugin)) {
-                if (inv.getChannel() == 1) {
-                    ShopFunction.saveShopItems(p, inv);
-                    return;
-                }
+    public void onInventoryClose(DInventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        DInventory inv = (DInventory) e.getInventory().getHolder();
+        if (inv.isValidHandler(plugin)) {
+            if (inv.getChannel() == 1) {
+                ShopFunction.saveShopItems(p, inv);
             }
         }
     }

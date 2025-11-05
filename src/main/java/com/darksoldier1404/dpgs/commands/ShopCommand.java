@@ -63,13 +63,6 @@ public class ShopCommand {
             }
             return false;
         });
-        builder.addSubCommand("migration", "dpgs.admin", plugin.getLang().get("cashshop_cmd_migration"), true, (p, args) -> {
-            if (args.length == 1) {
-                CommonFunction.migration();
-                return true;
-            }
-            return false;
-        });
 
         builder.addSubCommand("enable", "dpgs.admin", plugin.getLang().get("cashshop_cmd_enable"), true, (p, args) -> {
             if (args.length == 2) {

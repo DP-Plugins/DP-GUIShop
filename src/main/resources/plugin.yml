@@ -1,8 +1,8 @@
 name: DP-GUIShop
-version: 2.0.2
+version: 2.2.0
 main: com.darksoldier1404.dpgs.GUIShop
 authors: [ DEAD_POOLIO_ ]
-api-version: 1.16
+api-version: 1.20
 depend:
   - DPP-Core
 softdepend:

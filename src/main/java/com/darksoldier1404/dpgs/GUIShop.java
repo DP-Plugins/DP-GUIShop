@@ -3,6 +3,7 @@ package com.darksoldier1404.dpgs;
 import com.darksoldier1404.dpgs.commands.ShopCommand;
 import com.darksoldier1404.dpgs.events.DPGSEvent;
 import com.darksoldier1404.dpgs.obj.Shop;
+import com.darksoldier1404.dppc.annotation.DPPCoreVersion;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
 import com.darksoldier1404.dppc.data.DPlugin;
 import com.darksoldier1404.dppc.data.DataContainer;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@DPPCoreVersion(since = "5.3.0")
 public class GUIShop extends DPlugin {
     public static GUIShop plugin;
     public static DataContainer<String, Shop> shops;
@@ -42,6 +44,6 @@ public class GUIShop extends DPlugin {
 
     @Override
     public void onDisable() {
-        saveDataContainer();
+        saveAllData();
     }
 }

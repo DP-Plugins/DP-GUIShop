@@ -4,7 +4,6 @@ import com.darksoldier1404.dpgs.obj.Shop;
 import com.darksoldier1404.dpgs.obj.ShopPrices;
 import com.darksoldier1404.dppc.api.essentials.MoneyAPI;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
-import com.darksoldier1404.dppc.utils.ColorUtils;
 import com.darksoldier1404.dppc.utils.InventoryUtils;
 import com.darksoldier1404.dppc.utils.NBT;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -41,7 +40,9 @@ public class ShopFunction {
         data.set("name", shopName);
         data.set("size", size);
         Shop shop = new Shop(shopName, plugin.getLang().getWithArgs("shop_title", shopName), size);
-        shop.setInventory(new DInventory(plugin.getLang().getWithArgs("shop_title", shopName), size * 9, true, plugin));
+        DInventory inv = new DInventory(plugin.getLang().getWithArgs("shop_title", shopName), size * 9, true, true, plugin);
+        inv.applyDefaultPageTools();
+        shop.setInventory(inv);
         shops.put(shopName, shop);
         saveShops();
         p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_create_success", shopName, String.valueOf(size)));
@@ -78,7 +79,6 @@ public class ShopFunction {
             return;
         }
         DInventory inv = shop.getInventory().clone();
-        inv.updateTitle(ColorUtils.applyColor(shop.getTitle()));
         inv.setObj(name);
         inv.setChannel(0);
         inv.setCurrentPage(0);
@@ -96,7 +96,6 @@ public class ShopFunction {
             return;
         }
         DInventory inv = shops.get(name).getInventory().clone();
-        inv.updateTitle(plugin.getLang().getWithArgs("shop_item_setting_title", name));
         inv.setObj(name);
         inv.setChannel(1);
         inv.setCurrentPage(0);
