@@ -4,6 +4,7 @@ import com.darksoldier1404.dpgs.obj.Shop;
 import com.darksoldier1404.dpgs.obj.ShopPrices;
 import com.darksoldier1404.dppc.api.essentials.MoneyAPI;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
+import com.darksoldier1404.dppc.utils.ColorUtils;
 import com.darksoldier1404.dppc.utils.InventoryUtils;
 import com.darksoldier1404.dppc.utils.NBT;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -79,6 +80,7 @@ public class ShopFunction {
             return;
         }
         DInventory inv = shop.getInventory().clone();
+        inv.setTitle(ColorUtils.applyColor(shop.getTitle()));
         inv.setObj(name);
         inv.setChannel(0);
         inv.setCurrentPage(0);
@@ -95,7 +97,9 @@ public class ShopFunction {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", name));
             return;
         }
-        DInventory inv = shops.get(name).getInventory().clone();
+        Shop shop = shops.get(name);
+        DInventory inv = shop.getInventory().clone();
+        inv.setTitle(ColorUtils.applyColor("Item Edit : " + shop.getTitle()));
         inv.setObj(name);
         inv.setChannel(1);
         inv.setCurrentPage(0);
@@ -148,6 +152,7 @@ public class ShopFunction {
         }
         Shop shop = shops.get(name);
         DInventory inv = shop.getInventory().clone();
+        inv.setTitle(ColorUtils.applyColor("Price Setting : " + shop.getTitle()));
         inv.setObj(name);
         inv.setChannel(2);
         inv.applyAllItemChanges(
