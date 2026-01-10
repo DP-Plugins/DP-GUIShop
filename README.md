@@ -1,81 +1,94 @@
-[ Migration DP-Shop data to DP-GUIShop ]
+<center><img src="https://i.postimg.cc/MKPVVR1s/dplogo-512.png" alt="logo"></center>
+<center><img src="https://i.postimg.cc/RZ9dqPFx/introduce.png" alt="introduce"></center>
 
-1. remove old DP-Shop plugin
-2. put DP-GUIShop plugin
-3. start server
-4. stop server
-5. goto DP-Shop folder to get old shops data (copy it)
-6. goto DP-GUIShop folder and create new folder "migration"
-7. paste old shop data into migration folder
-8. start server
-9. join server and use "/shop migration" command
-10. done!
+DP-GUIShop is a Minecraft plugin that allows server admins to easily create and manage in-game shops via an intuitive GUI.  
+It provides a simple way to configure shop items and prices through menus, eliminating the need to edit files manually.  
+Players can buy or sell items in these shops using the server’s economy (MoneyAPI via DPP-Core), while admins have control over shop availability and access permissions.
 
+---
 
-![](https://dpnw.site/assets/img/logo_white.png)
+<center><img src="https://i.postimg.cc/RZ9dqP08/description.png" alt="description"></center>
 
-![](https://dpnw.site/assets/img/desc_card/dppcore.jpg)
+- **GUI-Based Configuration** – Create and edit shops entirely through in-game menus  
+- **Shop Enable / Disable** – Toggle each shop on or off without deleting its data  
+- **Pagination Support** – Manage large shops using multiple pages (page index starts at 0)  
+- **Per-Shop Permissions** – Restrict access to specific shops using permission nodes  
+- **Custom Language Support** – All messages are configurable via language files  
 
-# ALL DP-Plugins depend on the [DPP-Core](https://dpnw.site/plugin.html?plugin=DPP-Core) plugin. <br>Please make sure to install [DPP-Core](https://dpnw.site/plugin.html?plugin=DPP-Core). </h1>
+---
 
-# Discord
-### Join our Discord server to get support and stay updated with the latest news and updates.
+<center><img src="https://i.postimg.cc/rwcjzhpH/depend-plugin.png" alt="depend-plugin"></center>
 
-### if any questions or suggestions, please join our Discord server.
+- All DP-Plugins require the **`DPP-Core`** plugin  
+- The plugin will not work if **`DPP-Core`** is not installed  
+- Download **`DPP-Core`** here: <a href="https://github.com/DP-Plugins/DPP-Core/releases" target="_blank">Click me!</a>  
+- An economy system is required (EssentialsX's economy system)  
 
-### if you find any bugs, please report them using inquiry channel.
+---
 
-<span style="font-size: 18px;">**Discord Invite : https://discord.gg/JnMCqkn2FX**</span>
+<center><img src="https://i.postimg.cc/dV01RxJB/installation.png" alt="installation"></center>
 
-<br>
-<br>
+1️⃣ Place **`DPP-Core`** and **`DP-GUIShop-*.jar`** into your server’s **`plugins`** folder  
 
-![](https://dpnw.site/assets/img/desc_card/desc.jpg)
+2️⃣ Start or restart the server  
+   (Config, language, and shop data files will be generated automatically)
 
-# DP-GUIShop Plugin Introduction
+3️⃣ If needed, edit **`config.yml`** or language files and reload using `/shop reload`  
 
-DP-GUIShop is a Minecraft plugin that allows for easy creation and management of shops on servers. It offers intuitive item and price configuration through a GUI, along with features for enabling/disabling shops and pagination.
+---
 
-## Plugin Features
-- **GUI-Based Configuration**: Easily set items and prices using a graphical interface.
-- **Shop Enable/Disable**: Activate or deactivate specific shops as needed.
-- **Pagination**: Organize shops across multiple pages (pages start from 0).
-- **Permission Settings**: Set or remove access permissions for individual shops.
-- **DLang Support**: You can freely edit language files.
+<center><img src="https://i.postimg.cc/jSKcC85K/settings.png" alt="settings"></center>
 
-<br>
-<br>
+- **`config.yml`**  
+  - Plugin prefix  
+  - Language selection (`Lang: en_US`, `ko_KR`, etc.)
 
-![](https://dpnw.site/assets/img/desc_card/cmd-perm.jpg)
+- **`shops/` folder**  
+  - Stores individual shop data files (auto-managed)
 
-## Commands
-| Command | Description |
-|---------|-------------|
-| `/shop create <name> <row>` | Creates a new shop. |
-| `/shop title <name> <title>` | Sets the title of a shop. |
-| `/shop maxpage <name> <maxPage>` | Sets the maximum number of pages for a shop (pages start from 0). |
-| `/shop items <name> [page]` | Opens the item configuration GUI. |
-| `/shop price <name> [page]` | Opens the price configuration GUI. |
-| `/shop enable <name>` | Enables a shop. |
-| `/shop disable <name>` | Disables a shop. |
-| `/shop delete <name>` | Deletes a shop. |
-| `/shop reload` | Reloads the configuration file. |
-| `/shop permission <name> <node>` | Sets a permission for a shop. |
-| `/shop delpermission <name>` | Removes a permission from a shop. |
-| `/shop open <name>` | Opens a shop (usable by players). |
+---
 
-## Usage Examples
-- Create a shop: `/shop create myshop`
-- Set shop pages: `/shop pages myshop 3`
-- Open item configuration GUI: `/shop items myshop`
-- Open price configuration GUI: `/shop price myshop`
-- Open a shop: `/shop open myshop`
+<center><img src="https://i.postimg.cc/SxqdjZKw/command.png" alt="command"></center>
 
-<br>
-<br>
+❗ Some commands require admin permission (`dpgs.admin`)
 
-![](https://dpnw.site/assets/img/desc_card/screenshot.jpg)
+**Command List and Examples**
 
-![](https://dpnw.site/assets/img/screenshot/DP-GUIShop/1.jpg)
+| Command | Permission | Description | Example |
+|------|------------|-------------|---------|
+| `/shop create <name> <size>` | dpgs.admin | Create a shop (size = rows, 2–6) | `/shop create Store 6` |
+| `/shop title <name> <title>` | dpgs.admin | Set shop title | `/shop title Store &aMy Shop` |
+| `/shop maxpage <name> <maxPage>` | dpgs.admin | Set max page number | `/shop maxpage Store 3` |
+| `/shop items <name>` | dpgs.admin | Edit shop items via GUI | `/shop items Store` |
+| `/shop price <name>` | dpgs.admin | Set buy/sell prices | `/shop price Store` |
+| `/shop enable <name>` | dpgs.admin | Enable a shop | `/shop enable Store` |
+| `/shop disable <name>` | dpgs.admin | Disable a shop | `/shop disable Store` |
+| `/shop delete <name>` | dpgs.admin | Delete a shop | `/shop delete Store` |
+| `/shop permission <name> <node>` | dpgs.admin | Set shop permission | `/shop permission Store vip.use` |
+| `/shop removepermission <name>` | dpgs.admin | Remove shop permission | `/shop removepermission Store` |
+| `/shop list` | dpgs.admin | List all shops | `/shop list` |
+| `/shop reload` | dpgs.admin | Reload plugin config | `/shop reload` |
+| `/shop open <name>` | None | Open a shop | `/shop open Store` |
 
-![](https://dpnw.site/assets/img/screenshot/DP-GUIShop/2.jpg)
+**❗Notes when using commands**
+
+- Shop names support Korean and English, but **spaces are not allowed**  
+- Shop edits (items/prices) are saved automatically when closing the GUI  
+- Players must have the required permission if one is set for the shop  
+- Admin commands require **OP** or `dpgs.admin` permission  
+
+---
+
+<center><img src="https://i.postimg.cc/Z5ZH0fqL/api-integration.png" alt="api-integration"></center>
+
+- this plugin is using EssentialsX's economy system.
+
+---
+
+<center><a href="https://discord.gg/JnMCqkn2FX"><img src="https://i.postimg.cc/4xZPn8dC/discord.png" alt="discord"></a></center>
+
+- https://discord.gg/JnMCqkn2FX  
+- For questions, bug reports, or feature suggestions, please join our Discord  
+- Feedback and improvement ideas are always welcome!
+
+---
