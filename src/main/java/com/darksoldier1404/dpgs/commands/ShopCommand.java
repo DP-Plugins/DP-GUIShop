@@ -107,6 +107,21 @@ public class ShopCommand {
             }
             return false;
         });
+        builder.addSubCommand("addprice", "dpgs.admin", "/shop addprice <name> <buy:sell> - add price for all items", true, (p, args) -> {
+            if (args.length >= 3) {
+                ShopFunction.addShopPrice((Player) p, args[1], args[2]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("subprice", "dpgs.admin", "/shop subprice <name> <buy:sell> - sub price for all items", true, (p, args) -> {
+            if (args.length >= 3) {
+                ShopFunction.subShopPrice((Player) p, args[1], args[2]);
+                return true;
+            }
+            return false;
+        });
+
         for (String c : builder.getSubCommandNames()) {
             builder.addTabCompletion(c, (sender, args) -> {
                 if (args.length == 1) {

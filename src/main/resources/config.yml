@@ -3,3 +3,8 @@ Settings:
   Lang: en_US
 
   use_gui_amount_selector: false # Not implemented yet
+
+  # Placeholder for item lore. You can use <buy_price>, <sell_price>, <buy_stack_price>, and <sell_stack_price> in the lore to display the respective prices.
+  # also supports color codes and new lines (\n)
+  # and if you have PlaceholderAPI installed, you can use all placeholderapi placeholders as well
+  itemLore: "&aBuy Price: &f<buy_price>\n&cSell Price: &f<sell_price>\n&a1 Set Buy Price: &f<buy_stack_price>\n&c1 Set Sell Price: &f<sell_stack_price>"

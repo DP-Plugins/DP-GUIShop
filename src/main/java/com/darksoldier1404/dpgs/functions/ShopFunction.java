@@ -4,9 +4,12 @@ import com.darksoldier1404.dpgs.obj.Shop;
 import com.darksoldier1404.dpgs.obj.ShopPrices;
 import com.darksoldier1404.dppc.api.essentials.MoneyAPI;
 import com.darksoldier1404.dppc.api.inventory.DInventory;
+import com.darksoldier1404.dppc.api.placeholder.PlaceholderUtils;
 import com.darksoldier1404.dppc.utils.ColorUtils;
 import com.darksoldier1404.dppc.utils.InventoryUtils;
 import com.darksoldier1404.dppc.utils.NBT;
+import com.darksoldier1404.dppc.utils.PluginUtil;
+import com.darksoldier1404.dppc.utils.enums.DependPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -85,7 +88,7 @@ public class ShopFunction {
         inv.setChannel(0);
         inv.setCurrentPage(0);
         inv.applyAllItemChanges(
-                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(shop, item)
+                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(p, shop, item)
         );
         inv.setPageTools(getPageTools());
         inv.update();
@@ -156,14 +159,14 @@ public class ShopFunction {
         inv.setObj(name);
         inv.setChannel(2);
         inv.applyAllItemChanges(
-                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(shop, item)
+                (Consumer<DInventory.PageItemSet>) item -> applyPlaceholderForPriceSetting(p, shop, item)
         );
         inv.setPageTools(getPageTools());
         inv.update();
         inv.openInventory(p);
     }
 
-    public static void applyPlaceholderForPriceSetting(Shop shop, DInventory.PageItemSet set) {
+    public static void applyPlaceholderForPriceSetting(Player p, Shop shop, DInventory.PageItemSet set) {
         ItemStack item = set.getItem();
         int page = set.getPage();
         int slot = set.getSlot();
@@ -172,8 +175,19 @@ public class ShopFunction {
             ItemMeta meta = item.getItemMeta();
             List<String> lore = item.getItemMeta().hasLore() ? meta.getLore() : new ArrayList<>();
             if (lore != null) {
-                lore.add(plugin.getLang().getWithArgs("shop_lore_buy", price != null && price.getBuyPrice() != 0 ? String.valueOf(price.getBuyPrice()) : plugin.getLang().getWithArgs("shop_lore_cant_buy")));
-                lore.add(plugin.getLang().getWithArgs("shop_lore_sell", price != null && price.getSellPrice() != 0 ? String.valueOf(price.getSellPrice()) : plugin.getLang().getWithArgs("shop_lore_cant_sell")));
+                String format = plugin.loreFormat;
+                format = format.replace("<buy_price>", price != null ? String.valueOf(price.getBuyPrice()) : plugin.getLang().get("shop_lore_cant_buy"));
+                format = format.replace("<sell_price>", price != null ? String.valueOf(price.getSellPrice()) : plugin.getLang().get("shop_lore_cant_sell"));
+                format = format.replace("<buy_stack_price>", price != null ? String.valueOf(price.getBuyPrice() * item.getMaxStackSize()) : plugin.getLang().get("shop_lore_cant_buy_stack"));
+                format = format.replace("<sell_stack_price>", price != null ? String.valueOf(price.getSellPrice() * item.getMaxStackSize()) : plugin.getLang().get("shop_lore_cant_sell_stack"));
+                format = ColorUtils.applyColor(format);
+                if (PluginUtil.isDependPluginLoaded(DependPlugin.PlaceholderAPI)) {
+                    format = PlaceholderUtils.applyPlaceholder(p, format);
+                }
+                String[] lines = format.split("\n");
+                for (String line : lines) {
+                    lore.add(line);
+                }
             }
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -393,10 +407,10 @@ public class ShopFunction {
             return;
         }
         StringBuilder titleBuilder = new StringBuilder();
-        for (int i = 1; i < args.length; i++) {
+        for (int i = 2; i < args.length; i++) {
             titleBuilder.append(args[i]).append(" ");
         }
-        String title = titleBuilder.toString().trim();
+        String title = titleBuilder.toString();
         if (title.isEmpty()) {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_invalid_title"));
             return;
@@ -405,5 +419,63 @@ public class ShopFunction {
         shops.put(shopName, shop);
         saveShops();
         p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_set_title", shopName, title));
+    }
+
+    public static void addShopPrice(Player p, String name, String price) {
+        if (!isShopExists(name)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", name));
+            return;
+        }
+        if (!price.matches("^\\d+:\\d+$")) {
+            p.sendMessage(plugin.getPrefix() + "price is invalid format. use <buyPrice>:<sellPrice>");
+            return;
+        }
+        int buyPrice;
+        int sellPrice;
+        if (price.contains(":")) {
+            buyPrice = Integer.parseInt(price.split(":")[0]);
+            sellPrice = Integer.parseInt(price.split(":")[1]);
+            Shop shop = shops.get(name);
+            for (ShopPrices sp : shop.getPrices()) {
+                if (sp.getBuyPrice() != 0) {
+                    sp.setBuyPrice(sp.getBuyPrice() + buyPrice);
+                }
+                if (sp.getSellPrice() != 0) {
+                    sp.setSellPrice(sp.getSellPrice() + sellPrice);
+                }
+            }
+            shops.put(name, shop);
+            saveShops();
+            p.sendMessage(plugin.getPrefix() + "shop prices have been increased by " + buyPrice + " (buy) and " + sellPrice + " (sell) for all items in shop " + name + ".");
+        }
+    }
+
+    public static void subShopPrice(Player p, String name, String price) {
+        if (!isShopExists(name)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", name));
+            return;
+        }
+        if (!price.matches("^\\d+:\\d+$")) {
+            p.sendMessage(plugin.getPrefix() + "price is invalid format. use <buyPrice>:<sellPrice>");
+            return;
+        }
+        int buyPrice;
+        int sellPrice;
+        if (price.contains(":")) {
+            buyPrice = Integer.parseInt(price.split(":")[0]);
+            sellPrice = Integer.parseInt(price.split(":")[1]);
+            Shop shop = shops.get(name);
+            for (ShopPrices sp : shop.getPrices()) {
+                if (sp.getBuyPrice() != 0) {
+                    sp.setBuyPrice(Math.max(0, sp.getBuyPrice() - buyPrice));
+                }
+                if (sp.getSellPrice() != 0) {
+                    sp.setSellPrice(Math.max(0, sp.getSellPrice() - sellPrice));
+                }
+            }
+            shops.put(name, shop);
+            saveShops();
+            p.sendMessage(plugin.getPrefix() + "shop prices have been decreased by " + buyPrice + " (buy) and " + sellPrice + " (sell) for all items in shop " + name + ".");
+        }
     }
 }

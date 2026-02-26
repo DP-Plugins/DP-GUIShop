@@ -12,7 +12,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.inventory.ItemStack;
 
 import static com.darksoldier1404.dpgs.GUIShop.*;
 
@@ -23,10 +22,6 @@ public class DPGSEvent implements Listener {
         Player p = (Player) e.getWhoClicked();
         if (inv.isValidHandler(plugin)) {
             Shop shop = ShopFunction.getShop(inv.getObj().toString());
-            ItemStack item = e.getCurrentItem();
-            if (item != null && item.getType().isAir()) {
-                return;
-            }
             ClickType clickType = e.getClick();
             if (inv.isValidChannel(0)) { // Main shop channel
                 e.setCancelled(true);

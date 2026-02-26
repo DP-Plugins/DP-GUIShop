@@ -10,7 +10,6 @@ import com.darksoldier1404.dppc.data.DataContainer;
 import com.darksoldier1404.dppc.data.DataType;
 import com.darksoldier1404.dppc.utils.PluginUtil;
 import com.darksoldier1404.dppc.utils.Tuple;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +19,8 @@ import java.util.UUID;
 public class GUIShop extends DPlugin {
     public static GUIShop plugin;
     public static DataContainer<String, Shop> shops;
-    public static DataContainer<String, YamlConfiguration> udata;
     public static final Map<UUID, Tuple<Integer, DInventory>> currentEdit = new HashMap<>();
+    public static String loreFormat;
 
     public GUIShop() {
         super(true);
@@ -33,11 +32,11 @@ public class GUIShop extends DPlugin {
         PluginUtil.addPlugin(this, 26579);
         init();
         shops = loadDataContainer(new DataContainer<>(this, DataType.CUSTOM, "shops"), Shop.class);
-        udata = loadDataContainer(new DataContainer<>(this, DataType.USER));
     }
 
     @Override
     public void onEnable() {
+        plugin.loreFormat = plugin.getConfig().getString("Settings.itemLore");
         getServer().getPluginManager().registerEvents(new DPGSEvent(), plugin);
         getCommand("dpgs").setExecutor(new ShopCommand().getExecutor());
     }
