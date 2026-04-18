@@ -13,6 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
+import java.math.BigInteger;
+
 import static com.darksoldier1404.dpgs.GUIShop.*;
 
 public class DPGSEvent implements Listener {
@@ -76,13 +78,13 @@ public class DPGSEvent implements Listener {
                 String shopName = (String) inv.getObj();
                 String message = e.getMessage();
                 if (message.matches("\\d+:\\d+")) {
-                    int buyPrice = Integer.parseInt(message.split(":")[0]);
-                    int sellPrice = Integer.parseInt(message.split(":")[1]);
+                    BigInteger buyPrice = new BigInteger(message.split(":")[0]);
+                    BigInteger sellPrice = new BigInteger(message.split(":")[1]);
                     ShopFunction.setShopPrice(inv.getCurrentPage(), shopName, buyPrice, sellPrice, inv.getCurrentPage(), slot);
                     p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_set", shopName, String.valueOf(buyPrice), String.valueOf(sellPrice)));
                 } else if (message.matches("\\d+")) {
-                    int price = Integer.parseInt(message);
-                    ShopFunction.setShopPrice(inv.getCurrentPage(), shopName, price, 0, inv.getCurrentPage(), slot);
+                    BigInteger price = new BigInteger(message);
+                    ShopFunction.setShopPrice(inv.getCurrentPage(), shopName, price, BigInteger.ZERO, inv.getCurrentPage(), slot);
                     p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_set", shopName, String.valueOf(price), "0"));
                 } else {
                     p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_price_setting_number_guide"));

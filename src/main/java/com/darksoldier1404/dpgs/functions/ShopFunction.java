@@ -18,6 +18,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -176,10 +179,10 @@ public class ShopFunction {
             List<String> lore = item.getItemMeta().hasLore() ? meta.getLore() : new ArrayList<>();
             if (lore != null) {
                 String format = plugin.loreFormat;
-                format = format.replace("<buy_price>", price != null ? String.valueOf(price.getBuyPrice()) : plugin.getLang().get("shop_lore_cant_buy"));
-                format = format.replace("<sell_price>", price != null ? String.valueOf(price.getSellPrice()) : plugin.getLang().get("shop_lore_cant_sell"));
-                format = format.replace("<buy_stack_price>", price != null ? String.valueOf(price.getBuyPrice() * item.getMaxStackSize()) : plugin.getLang().get("shop_lore_cant_buy_stack"));
-                format = format.replace("<sell_stack_price>", price != null ? String.valueOf(price.getSellPrice() * item.getMaxStackSize()) : plugin.getLang().get("shop_lore_cant_sell_stack"));
+                format = format.replace("<buy_price>", price != null ? formatWithCommas(price.getBuyPrice()) : plugin.getLang().get("shop_lore_cant_buy"));
+                format = format.replace("<sell_price>", price != null ? formatWithCommas(price.getSellPrice()) : plugin.getLang().get("shop_lore_cant_sell"));
+                format = format.replace("<buy_stack_price>", price != null ? formatWithCommas(price.getBuyPrice().multiply(BigInteger.valueOf(item.getMaxStackSize()))) : plugin.getLang().get("shop_lore_cant_buy_stack"));
+                format = format.replace("<sell_stack_price>", price != null ? formatWithCommas(price.getSellPrice().multiply(BigInteger.valueOf(item.getMaxStackSize()))) : plugin.getLang().get("shop_lore_cant_sell_stack"));
                 format = ColorUtils.applyColor(format);
                 if (PluginUtil.isDependPluginLoaded(DependPlugin.PlaceholderAPI)) {
                     format = PlaceholderUtils.applyPlaceholder(p, format);
@@ -194,7 +197,7 @@ public class ShopFunction {
         }
     }
 
-    public static void setShopPrice(int currentPage, String name, int buyPrice, int sellPrice, int page, int slot) {
+    public static void setShopPrice(int currentPage, String name, BigInteger buyPrice, BigInteger sellPrice, int page, int slot) {
         if (!isShopExists(name)) {
             throw new IllegalArgumentException("Shop does not exist: " + name);
         }
@@ -257,17 +260,18 @@ public class ShopFunction {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_price"));
             return false;
         }
-        if (price.getBuyPrice() <= 0) {
+        if (price.getBuyPrice().compareTo(BigInteger.ZERO) <= 0) {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_cant_buy"));
             return false;
         }
         if (isStackBuy) {
-            if (!MoneyAPI.hasEnoughMoney(p, price.getBuyPrice() * shop.findItem(page, slot).getMaxStackSize())) {
-                p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_money", String.valueOf(price.getBuyPrice() * shop.findItem(page, slot).getMaxStackSize())));
+            BigInteger totalPrice = price.getBuyPrice().multiply(BigInteger.valueOf(shop.findItem(page, slot).getMaxStackSize()));
+            if (!MoneyAPI.hasEnoughMoney(p, new BigDecimal(totalPrice))) {
+                p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_money", String.valueOf(totalPrice)));
                 return false;
             }
         } else {
-            if (!MoneyAPI.hasEnoughMoney(p, price.getBuyPrice())) {
+            if (!MoneyAPI.hasEnoughMoney(p, new BigDecimal(price.getBuyPrice()))) {
                 p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_money", String.valueOf(price.getBuyPrice())));
                 return false;
             }
@@ -283,9 +287,9 @@ public class ShopFunction {
         }
         if (isStackBuy) {
             item.setAmount(item.getMaxStackSize());
-            MoneyAPI.takeMoney(p, price.getBuyPrice() * item.getMaxStackSize());
+            MoneyAPI.takeMoney(p, new BigDecimal(price.getBuyPrice().multiply(BigInteger.valueOf(item.getMaxStackSize()))));
         } else {
-            MoneyAPI.takeMoney(p, price.getBuyPrice());
+            MoneyAPI.takeMoney(p, new BigDecimal(price.getBuyPrice()));
         }
         p.getInventory().addItem(item);
         p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_buy", String.valueOf(item.getAmount()), item.getType().name(), shopName));
@@ -303,7 +307,7 @@ public class ShopFunction {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_price"));
             return false;
         }
-        if (price.getSellPrice() <= 0) {
+        if (price.getSellPrice().compareTo(BigInteger.ZERO) <= 0) {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_cant_sell"));
             return false;
         }
@@ -320,7 +324,7 @@ public class ShopFunction {
             return false;
         }
         item.setAmount(sellAmount);
-        MoneyAPI.addMoney(p, price.getSellPrice() * sellAmount);
+        MoneyAPI.addMoney(p, new BigDecimal(price.getSellPrice().multiply(BigInteger.valueOf(sellAmount))));
         p.getInventory().removeItem(item);
         p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_sell", String.valueOf(sellAmount), item.getType().name(), shopName));
         return true;
@@ -437,11 +441,11 @@ public class ShopFunction {
             sellPrice = Integer.parseInt(price.split(":")[1]);
             Shop shop = shops.get(name);
             for (ShopPrices sp : shop.getPrices()) {
-                if (sp.getBuyPrice() != 0) {
-                    sp.setBuyPrice(sp.getBuyPrice() + buyPrice);
+                if (sp.getBuyPrice().compareTo(BigInteger.ZERO) != 0) {
+                    sp.setBuyPrice(sp.getBuyPrice().add(BigInteger.valueOf(buyPrice)));
                 }
-                if (sp.getSellPrice() != 0) {
-                    sp.setSellPrice(sp.getSellPrice() + sellPrice);
+                if (sp.getSellPrice().compareTo(BigInteger.ZERO) != 0) {
+                    sp.setSellPrice(sp.getSellPrice().add(BigInteger.valueOf(sellPrice)));
                 }
             }
             shops.put(name, shop);
@@ -466,16 +470,23 @@ public class ShopFunction {
             sellPrice = Integer.parseInt(price.split(":")[1]);
             Shop shop = shops.get(name);
             for (ShopPrices sp : shop.getPrices()) {
-                if (sp.getBuyPrice() != 0) {
-                    sp.setBuyPrice(Math.max(0, sp.getBuyPrice() - buyPrice));
+                if (sp.getBuyPrice().compareTo(BigInteger.ZERO) != 0) {
+                    sp.setBuyPrice(sp.getBuyPrice().subtract(BigInteger.valueOf(buyPrice)).max(BigInteger.ZERO));
                 }
-                if (sp.getSellPrice() != 0) {
-                    sp.setSellPrice(Math.max(0, sp.getSellPrice() - sellPrice));
+                if (sp.getSellPrice().compareTo(BigInteger.ZERO) != 0) {
+                    sp.setSellPrice(sp.getSellPrice().subtract(BigInteger.valueOf(sellPrice)).max(BigInteger.ZERO));
                 }
             }
             shops.put(name, shop);
             saveShops();
             p.sendMessage(plugin.getPrefix() + "shop prices have been decreased by " + buyPrice + " (buy) and " + sellPrice + " (sell) for all items in shop " + name + ".");
         }
+    }
+
+    private static final DecimalFormat COMMA_FORMAT = new DecimalFormat("#,###");
+
+    public static String formatWithCommas(BigInteger number) {
+        if (number == null) return "0";
+        return COMMA_FORMAT.format(number);
     }
 }

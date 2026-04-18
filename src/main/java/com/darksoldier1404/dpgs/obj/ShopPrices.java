@@ -1,12 +1,14 @@
 package com.darksoldier1404.dpgs.obj;
 
+import java.math.BigInteger;
+
 public class ShopPrices {
     private int page;
     private int slot;
-    private int buyPrice;
-    private int sellPrice;
+    private BigInteger buyPrice;
+    private BigInteger sellPrice;
 
-    public ShopPrices(int page, int slot, int buyPrice, int sellPrice) {
+    public ShopPrices(int page, int slot, BigInteger buyPrice, BigInteger sellPrice) {
         this.page = page;
         this.slot = slot;
         this.buyPrice = buyPrice;
@@ -29,19 +31,19 @@ public class ShopPrices {
         this.slot = slot;
     }
 
-    public int getBuyPrice() {
+    public BigInteger getBuyPrice() {
         return buyPrice;
     }
 
-    public void setBuyPrice(int buyPrice) {
+    public void setBuyPrice(BigInteger buyPrice) {
         this.buyPrice = buyPrice;
     }
 
-    public int getSellPrice() {
+    public BigInteger getSellPrice() {
         return sellPrice;
     }
 
-    public void setSellPrice(int sellPrice) {
+    public void setSellPrice(BigInteger sellPrice) {
         this.sellPrice = sellPrice;
     }
 }

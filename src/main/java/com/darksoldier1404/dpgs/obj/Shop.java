@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -130,6 +131,7 @@ public class Shop implements DataCargo {
         data.set("title", title);
         data.set("size", size);
         data.set("enabled", isEnabled);
+        data.set("permission", premission);
         if (!prices.isEmpty()) {
             for (ShopPrices price : prices) {
                 data.set("prices." + price.getPage() + "." + price.getSlot() + ".buyPrice", price.getBuyPrice());
@@ -156,8 +158,8 @@ public class Shop implements DataCargo {
                 int page = Integer.parseInt(pageKey);
                 for (String slotKey : data.getConfigurationSection("prices." + page).getKeys(false)) {
                     int slot = Integer.parseInt(slotKey);
-                    int buyPrice = data.getInt("prices." + page + "." + slot + ".buyPrice", 0);
-                    int sellPrice = data.getInt("prices." + page + "." + slot + ".sellPrice", 0);
+                    BigInteger buyPrice = new BigInteger((data.getString("prices." + page + "." + slot + ".buyPrice", "0")));
+                    BigInteger sellPrice = new BigInteger(data.getString("prices." + page + "." + slot + ".sellPrice", "0"));
                     prices.add(new ShopPrices(page, slot, buyPrice, sellPrice));
                 }
             }
