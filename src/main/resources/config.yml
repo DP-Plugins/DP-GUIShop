@@ -8,3 +8,9 @@ Settings:
   # also supports color codes and new lines (\n)
   # and if you have PlaceholderAPI installed, you can use all placeholderapi placeholders as well
   itemLore: "&aBuy Price: &f<buy_price>\n&cSell Price: &f<sell_price>\n&a1 Set Buy Price: &f<buy_stack_price>\n&c1 Set Sell Price: &f<sell_stack_price>"
+
+  # Placeholder for limit lore. Displayed below itemLore when the shop has limit enabled.
+  # Use <limit_remaining> for remaining purchases and <limit_total> for the max limit.
+  # Supports color codes and new lines (\n)
+  limitLore: "&eLimit: &f<limit_remaining>&e/&f<limit_total>"
+

@@ -7,12 +7,21 @@ public class ShopPrices {
     private int slot;
     private BigInteger buyPrice;
     private BigInteger sellPrice;
+    private int limitAmount = 0; // 0 = unlimited
 
     public ShopPrices(int page, int slot, BigInteger buyPrice, BigInteger sellPrice) {
         this.page = page;
         this.slot = slot;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
+    }
+
+    public ShopPrices(int page, int slot, BigInteger buyPrice, BigInteger sellPrice, int limitAmount) {
+        this.page = page;
+        this.slot = slot;
+        this.buyPrice = buyPrice;
+        this.sellPrice = sellPrice;
+        this.limitAmount = limitAmount;
     }
 
     public int getPage() {
@@ -45,5 +54,13 @@ public class ShopPrices {
 
     public void setSellPrice(BigInteger sellPrice) {
         this.sellPrice = sellPrice;
+    }
+
+    public int getLimitAmount() {
+        return limitAmount;
+    }
+
+    public void setLimitAmount(int limitAmount) {
+        this.limitAmount = limitAmount;
     }
 }

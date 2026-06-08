@@ -10,6 +10,7 @@ import com.darksoldier1404.dppc.utils.InventoryUtils;
 import com.darksoldier1404.dppc.utils.NBT;
 import com.darksoldier1404.dppc.utils.PluginUtil;
 import com.darksoldier1404.dppc.utils.enums.DependPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -21,8 +22,11 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.darksoldier1404.dpgs.GUIShop.*;
@@ -191,6 +195,25 @@ public class ShopFunction {
                 for (String line : lines) {
                     lore.add(line);
                 }
+                // Append limit lore if limit is enabled
+                if (shop.isLimitEnabled() && price != null && price.getLimitAmount() > 0) {
+                    int totalLimit = price.getLimitAmount();
+                    int usedCount;
+                    if ("perplayer".equalsIgnoreCase(shop.getLimitType())) {
+                        usedCount = shop.getPlayerLimitCount(page, slot, p.getUniqueId().toString());
+                    } else {
+                        usedCount = shop.getWorldLimitCount(page, slot);
+                    }
+                    int remaining = Math.max(0, totalLimit - usedCount);
+                    String limitFormat = plugin.limitLore;
+                    limitFormat = limitFormat.replace("<limit_remaining>", String.valueOf(remaining));
+                    limitFormat = limitFormat.replace("<limit_total>", String.valueOf(totalLimit));
+                    limitFormat = ColorUtils.applyColor(limitFormat);
+                    String[] limitLines = limitFormat.split("\n");
+                    for (String line : limitLines) {
+                        lore.add(line);
+                    }
+                }
             }
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -264,8 +287,29 @@ public class ShopFunction {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_cant_buy"));
             return false;
         }
+        ItemStack item = shop.findItem(page, slot);
+        if (item == null || item.getType() == org.bukkit.Material.AIR) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_item"));
+            return false;
+        }
+        int buyAmount = isStackBuy ? item.getMaxStackSize() : 1;
+        // Limit check
+        if (shop.isLimitEnabled() && price.getLimitAmount() > 0) {
+            int limitAmount = price.getLimitAmount();
+            int usedCount;
+            if ("perplayer".equalsIgnoreCase(shop.getLimitType())) {
+                usedCount = shop.getPlayerLimitCount(page, slot, p.getUniqueId().toString());
+            } else {
+                usedCount = shop.getWorldLimitCount(page, slot);
+            }
+            if (usedCount + buyAmount > limitAmount) {
+                int remaining = Math.max(0, limitAmount - usedCount);
+                p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_limit_exceeded", String.valueOf(remaining), String.valueOf(limitAmount)));
+                return false;
+            }
+        }
         if (isStackBuy) {
-            BigInteger totalPrice = price.getBuyPrice().multiply(BigInteger.valueOf(shop.findItem(page, slot).getMaxStackSize()));
+            BigInteger totalPrice = price.getBuyPrice().multiply(BigInteger.valueOf(buyAmount));
             if (!MoneyAPI.hasEnoughMoney(p, new BigDecimal(totalPrice))) {
                 p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_money", String.valueOf(totalPrice)));
                 return false;
@@ -276,22 +320,28 @@ public class ShopFunction {
                 return false;
             }
         }
-        ItemStack item = shop.findItem(page, slot).clone();
-        if (item == null || item.getType() == org.bukkit.Material.AIR) {
-            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_item"));
-            return false;
-        }
         if (!InventoryUtils.hasEnoughSpace(p.getInventory().getStorageContents(), item)) {
             p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_no_space"));
             return false;
         }
+        item = item.clone();
         if (isStackBuy) {
-            item.setAmount(item.getMaxStackSize());
-            MoneyAPI.takeMoney(p, new BigDecimal(price.getBuyPrice().multiply(BigInteger.valueOf(item.getMaxStackSize()))));
+            item.setAmount(buyAmount);
+            MoneyAPI.takeMoney(p, new BigDecimal(price.getBuyPrice().multiply(BigInteger.valueOf(buyAmount))));
         } else {
             MoneyAPI.takeMoney(p, new BigDecimal(price.getBuyPrice()));
         }
         p.getInventory().addItem(item);
+        // Update limit data
+        if (shop.isLimitEnabled() && price.getLimitAmount() > 0) {
+            if ("perplayer".equalsIgnoreCase(shop.getLimitType())) {
+                shop.addPlayerLimitCount(page, slot, p.getUniqueId().toString(), buyAmount);
+            } else {
+                shop.addWorldLimitCount(page, slot, buyAmount);
+            }
+            shops.put(shopName, shop);
+            saveShops();
+        }
         p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_buy", String.valueOf(item.getAmount()), item.getType().name(), shopName));
         return true;
     }
@@ -488,5 +538,288 @@ public class ShopFunction {
     public static String formatWithCommas(BigInteger number) {
         if (number == null) return "0";
         return COMMA_FORMAT.format(number);
+    }
+
+    // ============ Limit Functions ============
+
+    public static void openShopLimitSetting(Player p, String name) {
+        if (!isShopExists(name)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", name));
+            return;
+        }
+        Shop shop = shops.get(name);
+        DInventory inv = shop.getInventory().clone();
+        String limitStatus = shop.isLimitEnabled() ? "§aON" : "§cOFF";
+        String limitType = shop.getLimitType().equalsIgnoreCase("perplayer") ? "§bPerPlayer" : "§eWorld";
+        inv.setTitle(ColorUtils.applyColor("§6Limit [" + limitStatus + "§6] [" + limitType + "§6] : " + shop.getTitle()));
+        inv.setObj(name);
+        inv.setChannel(3);
+        inv.applyAllItemChanges(
+                (Consumer<DInventory.PageItemSet>) item -> applyLimitLoreForSetting(shop, item)
+        );
+        inv.setPageTools(getPageTools());
+        inv.update();
+        inv.openInventory(p);
+    }
+
+    public static void applyLimitLoreForSetting(Shop shop, DInventory.PageItemSet set) {
+        ItemStack item = set.getItem();
+        int page = set.getPage();
+        int slot = set.getSlot();
+        ShopPrices price = shop.findPrice(page, slot);
+        if (item != null && item.getType() != org.bukkit.Material.AIR) {
+            ItemMeta meta = item.getItemMeta();
+            List<String> lore = item.getItemMeta().hasLore() ? meta.getLore() : new ArrayList<>();
+            if (lore != null) {
+                int limitAmount = price != null ? price.getLimitAmount() : 0;
+                int worldCount = shop.getWorldLimitCount(page, slot);
+                lore.add(ColorUtils.applyColor(plugin.getLang().get("shop_limit_gui_separator")));
+                if (limitAmount > 0) {
+                    lore.add(ColorUtils.applyColor(plugin.getLang().getWithArgs("shop_limit_gui_amount", String.valueOf(limitAmount))));
+                    lore.add(ColorUtils.applyColor(plugin.getLang().getWithArgs("shop_limit_gui_world_count", String.valueOf(worldCount))));
+                } else {
+                    lore.add(ColorUtils.applyColor(plugin.getLang().get("shop_limit_gui_not_set")));
+                }
+                lore.add(ColorUtils.applyColor(plugin.getLang().get("shop_limit_gui_click")));
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+    }
+
+    public static void setItemLimit(Player p, String shopName, int currentPage, int page, int slot, int limitAmount) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.getInventory().setCurrentPage(currentPage);
+        ShopPrices price = shop.findPrice(page, slot);
+        if (price != null) {
+            price.setLimitAmount(limitAmount);
+        } else {
+            price = new ShopPrices(page, slot, BigInteger.ZERO, BigInteger.ZERO, limitAmount);
+            shop.getPrices().add(price);
+        }
+        shops.put(shopName, shop);
+        saveShops();
+    }
+
+    public static void setShopLimitEnable(Player p, String shopName) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.setLimitEnabled(true);
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_limit_enabled", shopName));
+    }
+
+    public static void setShopLimitDisable(Player p, String shopName) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.setLimitEnabled(false);
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_limit_disabled", shopName));
+    }
+
+    public static void setShopLimitType(Player p, String shopName, String limitType) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        if (!limitType.equalsIgnoreCase("world") && !limitType.equalsIgnoreCase("perplayer")) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_invalid_limit_type"));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.setLimitType(limitType.toLowerCase());
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_limit_type_set", shopName, limitType));
+    }
+
+    public static void resetShopLimit(Player p, String shopName) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.resetLimitData();
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_limit_reset", shopName));
+    }
+
+    /**
+     * 구매 성공 후 열려 있는 인벤토리의 해당 슬롯 lore를 최신 limit 수치로 즉시 갱신한다.
+     * shop.getInventory()의 원본 아이템(lore 없음)을 가져와 price/limit lore를 재적용한 후
+     * 현재 열려있는 DInventory의 pageItems에 덮어쓰고 update()를 호출한다.
+     */
+    public static void refreshShopSlot(Player p, DInventory inv, String shopName, int page, int slot) {
+        Shop freshShop = shops.get(shopName);
+        if (freshShop == null) return;
+
+        // 상점 원본 인벤토리에서 lore가 추가되지 않은 깨끗한 아이템을 가져온다
+        ItemStack baseItem = freshShop.findItem(page, slot);
+        if (baseItem == null || baseItem.getType() == org.bukkit.Material.AIR) return;
+
+        ShopPrices price = freshShop.findPrice(page, slot);
+        ItemMeta meta = baseItem.getItemMeta();
+        if (meta == null) return;
+
+        List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+
+        // 가격 lore 재적용
+        String format = plugin.loreFormat;
+        format = format.replace("<buy_price>", price != null ? formatWithCommas(price.getBuyPrice()) : plugin.getLang().get("shop_lore_cant_buy"));
+        format = format.replace("<sell_price>", price != null ? formatWithCommas(price.getSellPrice()) : plugin.getLang().get("shop_lore_cant_sell"));
+        format = format.replace("<buy_stack_price>", price != null ? formatWithCommas(price.getBuyPrice().multiply(BigInteger.valueOf(baseItem.getMaxStackSize()))) : plugin.getLang().get("shop_lore_cant_buy_stack"));
+        format = format.replace("<sell_stack_price>", price != null ? formatWithCommas(price.getSellPrice().multiply(BigInteger.valueOf(baseItem.getMaxStackSize()))) : plugin.getLang().get("shop_lore_cant_sell_stack"));
+        format = ColorUtils.applyColor(format);
+        if (PluginUtil.isDependPluginLoaded(DependPlugin.PlaceholderAPI)) {
+            format = PlaceholderUtils.applyPlaceholder(p, format);
+        }
+        for (String line : format.split("\n")) {
+            lore.add(line);
+        }
+
+        // limit lore 재적용 (최신 구매 횟수 반영)
+        if (freshShop.isLimitEnabled() && price != null && price.getLimitAmount() > 0) {
+            int totalLimit = price.getLimitAmount();
+            int usedCount;
+            if ("perplayer".equalsIgnoreCase(freshShop.getLimitType())) {
+                usedCount = freshShop.getPlayerLimitCount(page, slot, p.getUniqueId().toString());
+            } else {
+                usedCount = freshShop.getWorldLimitCount(page, slot);
+            }
+            int remaining = Math.max(0, totalLimit - usedCount);
+            String limitFormat = plugin.limitLore;
+            limitFormat = limitFormat.replace("<limit_remaining>", String.valueOf(remaining));
+            limitFormat = limitFormat.replace("<limit_total>", String.valueOf(totalLimit));
+            limitFormat = ColorUtils.applyColor(limitFormat);
+            for (String line : limitFormat.split("\n")) {
+                lore.add(line);
+            }
+        }
+
+        meta.setLore(lore);
+        baseItem.setItemMeta(meta);
+
+        // 현재 열려있는 DInventory의 해당 페이지 슬롯을 갱신하고 표시를 업데이트한다
+        ItemStack[] pageItems = inv.getPageItems().get(page);
+        if (pageItems != null) {
+            pageItems[slot] = baseItem;
+            inv.update();
+        }
+    }
+
+    // ============ Auto Reset Functions ============
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm");
+
+    public static void setShopAutoResetEnable(Player p, String shopName) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.setAutoResetEnabled(true);
+        if (shop.getLastResetDate().isEmpty()) {
+            shop.setLastResetDate(DATE_FORMAT.format(new Date()));
+        }
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_auto_reset_enabled", shopName, shop.getAutoResetTime()));
+    }
+
+    public static void setShopAutoResetDisable(Player p, String shopName) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        Shop shop = shops.get(shopName);
+        shop.setAutoResetEnabled(false);
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_auto_reset_disabled", shopName));
+    }
+
+    public static void setShopAutoResetTime(Player p, String shopName, String time) {
+        if (!isShopExists(shopName)) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_not_exist", shopName));
+            return;
+        }
+        if (!time.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+            p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_err_invalid_reset_time"));
+            return;
+        }
+        // Normalize to HH:mm (zero-pad hours)
+        String[] parts = time.split(":");
+        String normalized = String.format("%02d:%s", Integer.parseInt(parts[0]), parts[1]);
+        Shop shop = shops.get(shopName);
+        shop.setAutoResetTime(normalized);
+        shops.put(shopName, shop);
+        saveShops();
+        p.sendMessage(plugin.getPrefix() + plugin.getLang().getWithArgs("shop_msg_auto_reset_time_set", shopName, normalized));
+    }
+
+    /**
+     * Called every minute by the scheduler. Checks if any shop needs to be auto-reset.
+     */
+    public static void tickAutoReset() {
+        Date now = new Date();
+        String currentTime = TIME_FORMAT.format(now);
+        String currentDate = DATE_FORMAT.format(now);
+        boolean anyReset = false;
+        for (Map.Entry<String, Shop> entry : shops.entrySet()) {
+            Shop shop = entry.getValue();
+            if (shop.isAutoResetEnabled()
+                    && shop.getAutoResetTime().equals(currentTime)
+                    && !shop.getLastResetDate().equals(currentDate)) {
+                shop.resetLimitData();
+                shop.setLastResetDate(currentDate);
+                shops.put(entry.getKey(), shop);
+                anyReset = true;
+                Bukkit.broadcastMessage(plugin.getPrefix()
+                        + plugin.getLang().getWithArgs("shop_msg_auto_reset_done", shop.getName(), currentTime));
+            }
+        }
+        if (anyReset) {
+            saveShops();
+        }
+    }
+
+    /**
+     * Called on server startup. Resets shops whose auto-reset time has already passed today and haven't been reset yet.
+     */
+    public static void checkAutoResetOnStartup() {
+        Date now = new Date();
+        String currentTime = TIME_FORMAT.format(now);
+        String currentDate = DATE_FORMAT.format(now);
+        boolean anyReset = false;
+        for (Map.Entry<String, Shop> entry : shops.entrySet()) {
+            Shop shop = entry.getValue();
+            if (shop.isAutoResetEnabled()
+                    && !shop.getLastResetDate().isEmpty()
+                    && !shop.getLastResetDate().equals(currentDate)
+                    && currentTime.compareTo(shop.getAutoResetTime()) >= 0) {
+                shop.resetLimitData();
+                shop.setLastResetDate(currentDate);
+                shops.put(entry.getKey(), shop);
+                anyReset = true;
+                plugin.getLogger().info("[DP-GUIShop] Auto-reset triggered on startup for shop: " + shop.getName());
+            }
+        }
+        if (anyReset) {
+            saveShops();
+        }
     }
 }

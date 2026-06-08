@@ -1,94 +1,136 @@
-<center><img src="https://i.postimg.cc/MKPVVR1s/dplogo-512.png" alt="logo"></center>
-<center><img src="https://i.postimg.cc/RZ9dqPFx/introduce.png" alt="introduce"></center>
+[ Migration DP-Shop data to DP-GUIShop ]
 
-DP-GUIShop is a Minecraft plugin that allows server admins to easily create and manage in-game shops via an intuitive GUI.  
-It provides a simple way to configure shop items and prices through menus, eliminating the need to edit files manually.  
-Players can buy or sell items in these shops using the server’s economy (MoneyAPI via DPP-Core), while admins have control over shop availability and access permissions.
+1. remove old DP-Shop plugin
+2. put DP-GUIShop plugin
+3. start server
+4. stop server
+5. goto DP-Shop folder to get old shops data (copy it)
+6. goto DP-GUIShop folder and create new folder "migration"
+7. paste old shop data into migration folder
+8. start server
+9. join server and use "/shop migration" command
+10. done!
 
----
 
-<center><img src="https://i.postimg.cc/RZ9dqP08/description.png" alt="description"></center>
+![](https://dpnw.site/assets/img/logo_white.png)
 
-- **GUI-Based Configuration** – Create and edit shops entirely through in-game menus  
-- **Shop Enable / Disable** – Toggle each shop on or off without deleting its data  
-- **Pagination Support** – Manage large shops using multiple pages (page index starts at 0)  
-- **Per-Shop Permissions** – Restrict access to specific shops using permission nodes  
-- **Custom Language Support** – All messages are configurable via language files  
+![](https://dpnw.site/assets/img/desc_card/dppcore.jpg)
 
----
+# ALL DP-Plugins depend on the [DPP-Core](https://dpnw.site/plugin.html?plugin=DPP-Core) plugin. <br>Please make sure to install [DPP-Core](https://dpnw.site/plugin.html?plugin=DPP-Core). </h1>
 
-<center><img src="https://i.postimg.cc/rwcjzhpH/depend-plugin.png" alt="depend-plugin"></center>
+# Discord
+### Join our Discord server to get support and stay updated with the latest news and updates.
 
-- All DP-Plugins require the **`DPP-Core`** plugin  
-- The plugin will not work if **`DPP-Core`** is not installed  
-- Download **`DPP-Core`** here: <a href="https://github.com/DP-Plugins/DPP-Core/releases" target="_blank">Click me!</a>  
-- An economy system is required (EssentialsX's economy system)  
+### if any questions or suggestions, please join our Discord server.
 
----
+### if you find any bugs, please report them using inquiry channel.
 
-<center><img src="https://i.postimg.cc/dV01RxJB/installation.png" alt="installation"></center>
+<span style="font-size: 18px;">**Discord Invite : https://discord.gg/JnMCqkn2FX**</span>
 
-1️⃣ Place **`DPP-Core`** and **`DP-GUIShop-*.jar`** into your server’s **`plugins`** folder  
+<br>
+<br>
 
-2️⃣ Start or restart the server  
-   (Config, language, and shop data files will be generated automatically)
+![](https://dpnw.site/assets/img/desc_card/desc.jpg)
 
-3️⃣ If needed, edit **`config.yml`** or language files and reload using `/shop reload`  
+# DP-GUIShop Plugin Introduction
 
----
+DP-GUIShop is a Minecraft plugin that allows for easy creation and management of shops on servers. It offers intuitive item and price configuration through a GUI, along with features for enabling/disabling shops, pagination, and per-item purchase limits.
 
-<center><img src="https://i.postimg.cc/jSKcC85K/settings.png" alt="settings"></center>
+## Plugin Features
+- **GUI-Based Configuration**: Easily set items and prices using a graphical interface.
+- **Shop Enable/Disable**: Activate or deactivate specific shops as needed.
+- **Pagination**: Organize shops across multiple pages (pages start from 0).
+- **Permission Settings**: Set or remove access permissions for individual shops.
+- **Purchase Limit System**: Limit how many times an item can be purchased per player or globally.
+  - **world** type: Total purchase count shared across all players.
+  - **perplayer** type: Each player has their own individual purchase count.
+  - Remaining limit is displayed in each item's lore.
+  - Limit data can be reset at any time with `/shop limitreset`.
+- **DLang Support**: You can freely edit language files.
 
-- **`config.yml`**  
-  - Plugin prefix  
-  - Language selection (`Lang: en_US`, `ko_KR`, etc.)
+<br>
+<br>
 
-- **`shops/` folder**  
-  - Stores individual shop data files (auto-managed)
+![](https://dpnw.site/assets/img/desc_card/cmd-perm.jpg)
 
----
+## Commands
+| Command | Description |
+|---------|-------------|
+| `/shop create <name> <row>` | Creates a new shop. |
+| `/shop title <name> <title>` | Sets the title of a shop. |
+| `/shop maxpage <name> <maxPage>` | Sets the maximum number of pages for a shop (pages start from 0). |
+| `/shop items <name> [page]` | Opens the item configuration GUI. |
+| `/shop price <name> [page]` | Opens the price configuration GUI. |
+| `/shop enable <name>` | Enables a shop. |
+| `/shop disable <name>` | Disables a shop. |
+| `/shop delete <name>` | Deletes a shop. |
+| `/shop reload` | Reloads the configuration file. |
+| `/shop permission <name> <node>` | Sets a permission for a shop. |
+| `/shop delpermission <name>` | Removes a permission from a shop. |
+| `/shop open <name>` | Opens a shop (usable by players). |
+| `/shop limit <name>` | Opens the purchase limit configuration GUI. |
+| `/shop limitenable <name>` | Enables the purchase limit system for a shop. |
+| `/shop limitdisable <name>` | Disables the purchase limit system for a shop. |
+| `/shop limittype <name> <world\|perplayer>` | Sets the limit type (`world` = shared, `perplayer` = per player). |
+| `/shop limitreset <name>` | Resets all purchase limit data for a shop immediately. |
+| `/shop autoresetenable <name>` | Enables scheduled auto-reset of purchase limit data. |
+| `/shop autoresetdisable <name>` | Disables scheduled auto-reset. |
+| `/shop autoresettime <name> <HH:mm>` | Sets the daily auto-reset time (default: `00:00`). |
 
-<center><img src="https://i.postimg.cc/SxqdjZKw/command.png" alt="command"></center>
+## Purchase Limit System
 
-❗ Some commands require admin permission (`dpgs.admin`)
+The purchase limit system allows you to restrict how many times each item in a shop can be bought.
 
-**Command List and Examples**
+### How to set up:
+1. **Enable the limit system**: `/shop limitenable <shopname>`
+2. **Set the limit type**: `/shop limittype <shopname> world` or `/shop limittype <shopname> perplayer`
+3. **Open limit configuration GUI**: `/shop limit <shopname>`
+4. **Click an item** in the GUI → enter the limit amount in chat → the limit is saved
+   - Enter `0` to remove the limit for that item
+5. The remaining purchase count is automatically displayed in the item's lore in the shop.
 
-| Command | Permission | Description | Example |
-|------|------------|-------------|---------|
-| `/shop create <name> <size>` | dpgs.admin | Create a shop (size = rows, 2–6) | `/shop create Store 6` |
-| `/shop title <name> <title>` | dpgs.admin | Set shop title | `/shop title Store &aMy Shop` |
-| `/shop maxpage <name> <maxPage>` | dpgs.admin | Set max page number | `/shop maxpage Store 3` |
-| `/shop items <name>` | dpgs.admin | Edit shop items via GUI | `/shop items Store` |
-| `/shop price <name>` | dpgs.admin | Set buy/sell prices | `/shop price Store` |
-| `/shop enable <name>` | dpgs.admin | Enable a shop | `/shop enable Store` |
-| `/shop disable <name>` | dpgs.admin | Disable a shop | `/shop disable Store` |
-| `/shop delete <name>` | dpgs.admin | Delete a shop | `/shop delete Store` |
-| `/shop permission <name> <node>` | dpgs.admin | Set shop permission | `/shop permission Store vip.use` |
-| `/shop removepermission <name>` | dpgs.admin | Remove shop permission | `/shop removepermission Store` |
-| `/shop list` | dpgs.admin | List all shops | `/shop list` |
-| `/shop reload` | dpgs.admin | Reload plugin config | `/shop reload` |
-| `/shop open <name>` | None | Open a shop | `/shop open Store` |
+### Limit Types:
+| Type | Description |
+|------|-------------|
+| `world` | The total purchase count is shared by all players on the server. |
+| `perplayer` | Each player has their own individual purchase count. |
 
-**❗Notes when using commands**
+## Auto-Reset System
 
-- Shop names support Korean and English, but **spaces are not allowed**  
-- Shop edits (items/prices) are saved automatically when closing the GUI  
-- Players must have the required permission if one is set for the shop  
-- Admin commands require **OP** or `dpgs.admin` permission  
+Purchase limit data can be automatically reset at a scheduled time each day (default: midnight `00:00`). Auto-reset is **disabled by default** and must be enabled per shop.
 
----
+### How it works:
+- The plugin checks every **1 minute** whether any shop's scheduled reset time has been reached.
+- On server **startup**, it catches up any missed resets (if the server was offline at the scheduled time).
+- A broadcast message is sent to the server when a shop is auto-reset.
+- Each shop stores its own auto-reset time, so different shops can reset at different times.
 
-<center><img src="https://i.postimg.cc/Z5ZH0fqL/api-integration.png" alt="api-integration"></center>
+### Auto-Reset Commands:
+| Command | Description |
+|---------|-------------|
+| `/shop autoresetenable <name>` | Enables daily auto-reset for the shop. |
+| `/shop autoresetdisable <name>` | Disables daily auto-reset for the shop. |
+| `/shop autoresettime <name> <HH:mm>` | Sets the daily reset time (e.g. `00:00`, `06:00`). Default is `00:00`. |
 
-- this plugin is using EssentialsX's economy system.
+## Usage Examples
+- Create a shop: `/shop create myshop`
+- Set shop pages: `/shop pages myshop 3`
+- Open item configuration GUI: `/shop items myshop`
+- Open price configuration GUI: `/shop price myshop`
+- Open limit configuration GUI: `/shop limit myshop`
+- Enable limit for shop: `/shop limitenable myshop`
+- Set limit type to per-player: `/shop limittype myshop perplayer`
+- Reset limit data immediately: `/shop limitreset myshop`
+- Enable auto-reset at midnight: `/shop autoresetenable myshop`
+- Set auto-reset time to 6AM: `/shop autoresettime myshop 06:00`
+- Disable auto-reset: `/shop autoresetdisable myshop`
+- Open a shop: `/shop open myshop`
 
----
+<br>
+<br>
 
-<center><a href="https://discord.gg/JnMCqkn2FX"><img src="https://i.postimg.cc/4xZPn8dC/discord.png" alt="discord"></a></center>
+![](https://dpnw.site/assets/img/desc_card/screenshot.jpg)
 
-- https://discord.gg/JnMCqkn2FX  
-- For questions, bug reports, or feature suggestions, please join our Discord  
-- Feedback and improvement ideas are always welcome!
+![](https://dpnw.site/assets/img/screenshot/DP-GUIShop/1.jpg)
 
----
+![](https://dpnw.site/assets/img/screenshot/DP-GUIShop/2.jpg)
