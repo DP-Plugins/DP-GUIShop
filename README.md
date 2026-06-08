@@ -1,17 +1,3 @@
-[ Migration DP-Shop data to DP-GUIShop ]
-
-1. remove old DP-Shop plugin
-2. put DP-GUIShop plugin
-3. start server
-4. stop server
-5. goto DP-Shop folder to get old shops data (copy it)
-6. goto DP-GUIShop folder and create new folder "migration"
-7. paste old shop data into migration folder
-8. start server
-9. join server and use "/shop migration" command
-10. done!
-
-
 ![](https://dpnw.site/assets/img/logo_white.png)
 
 ![](https://dpnw.site/assets/img/desc_card/dppcore.jpg)
