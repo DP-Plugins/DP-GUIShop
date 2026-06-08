@@ -122,6 +122,64 @@ public class ShopCommand {
             return false;
         });
 
+        builder.addSubCommand("limit", "dpgs.admin", plugin.getLang().get("cashshop_cmd_limit"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.openShopLimitSetting((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("limitenable", "dpgs.admin", plugin.getLang().get("cashshop_cmd_limitenable"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.setShopLimitEnable((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("limitdisable", "dpgs.admin", plugin.getLang().get("cashshop_cmd_limitdisable"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.setShopLimitDisable((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("limittype", "dpgs.admin", plugin.getLang().get("cashshop_cmd_limittype"), true, (p, args) -> {
+            if (args.length == 3) {
+                ShopFunction.setShopLimitType((Player) p, args[1], args[2]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("limitreset", "dpgs.admin", plugin.getLang().get("cashshop_cmd_limitreset"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.resetShopLimit((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+
+        builder.addSubCommand("autoresetenable", "dpgs.admin", plugin.getLang().get("cashshop_cmd_autoresetenable"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.setShopAutoResetEnable((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("autoresetdisable", "dpgs.admin", plugin.getLang().get("cashshop_cmd_autoresetdisable"), true, (p, args) -> {
+            if (args.length == 2) {
+                ShopFunction.setShopAutoResetDisable((Player) p, args[1]);
+                return true;
+            }
+            return false;
+        });
+        builder.addSubCommand("autoresettime", "dpgs.admin", plugin.getLang().get("cashshop_cmd_autoresettime"), true, (p, args) -> {
+            if (args.length == 3) {
+                ShopFunction.setShopAutoResetTime((Player) p, args[1], args[2]);
+                return true;
+            }
+            return false;
+        });
+
         for (String c : builder.getSubCommandNames()) {
             builder.addTabCompletion(c, (sender, args) -> {
                 if (args.length == 1) {
@@ -132,6 +190,12 @@ public class ShopCommand {
                 }
                 if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
                     return Arrays.asList("2", "3", "4", "5", "6");
+                }
+                if (args.length == 3 && args[0].equalsIgnoreCase("limittype")) {
+                    return Arrays.asList("world", "perplayer");
+                }
+                if (args.length == 3 && args[0].equalsIgnoreCase("autoresettime")) {
+                    return Arrays.asList("00:00", "06:00", "12:00", "18:00");
                 }
                 return null;
             });

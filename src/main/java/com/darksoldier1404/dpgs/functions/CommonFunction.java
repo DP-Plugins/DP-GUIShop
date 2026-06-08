@@ -6,6 +6,7 @@ public class CommonFunction {
     public static void init() {
         plugin.reload();
         plugin.loreFormat = plugin.getConfig().getString("Settings.itemLore");
+        plugin.limitLore = plugin.getConfig().getString("Settings.limitLore", "&eLimit: &f<limit_remaining>&e/&f<limit_total>");
     }
 
     public static void saveConfig() {
